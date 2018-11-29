@@ -1,0 +1,59 @@
+---
+title: Selling Weekly Strangles on SPY
+author: "Pritam Dalal"
+date: "11/28/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE}
+######################
+## loading packages ##
+######################
+library(tidyverse)
+df_pnl <- read_csv("../data_output/spy_weekly_pnl.csv", col_types = cols())
+getwd()
+```
+
+##### Backtest Parameters
+Selling weekly strangles on SPY naked, no delta-hedging.  Accounts for bid-ask spread, but not commissions.  Tested 50-delta, 30-delta, 10-delta.  At the moment, the three variations are not equally sized, so comparing total PNL is not meaninful.  Sharpe-Ratio is meaningful.
+
+Dates: 12/16/2018 - 7/27/2018.
+
+##### TTD PNL
+
+At the end of the day, all three were losers, largely because of massive drawdowns at the beginning of 2018.
+
+```{r, ttd_pnl, echo = FALSE}
+# cummulative PNL graph
+df_pnl %>% 
+    group_by(variation, data_date) %>% 
+    summarize(
+        daily = sum(dly_opt_pnl)
+    ) %>% 
+    mutate(
+        ttd = cumsum(daily)
+    ) %>% 
+    ggplot() +
+        geom_line(aes(x = data_date, y = ttd, color = factor(variation)))
+ 
+```
+
+## Sharpe-Ratio During 2017
+
+Trading options is good...until it isn't.
+
+```{r pressure, echo=TRUE}
+# sharpe in 2017
+df_pnl %>% 
+    dplyr::filter(data_date < "2018-01-01") %>% 
+    group_by(variation) %>% 
+    summarize(
+        sharpe_ratio = (mean(dly_opt_pnl) / sd(dly_opt_pnl)) * sqrt(252)
+    )
+```
+

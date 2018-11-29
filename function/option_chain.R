@@ -1,4 +1,8 @@
-option_chain <- function(db_conn, trade_date, underlying, expiration){
+option_chain <- function(db_conn
+                         , trade_date
+                         , underlying
+                         , expiration
+                         , exclude_zero_bid = FALSE){
     
     chr_query <- 
         paste0("select * from option_small where DataDate='", trade_date 
@@ -38,8 +42,15 @@ option_chain <- function(db_conn, trade_date, underlying, expiration){
             , vega = Vega
             , aka = AKA
         ) %>% 
-        dplyr::filter(bid > 0) %>% 
-        mutate(mid = (bid + ask)/2)
+        mutate(
+            mid = (bid + ask)/2
+            , delta = abs(delta)
+        )
+    
+    if (exclude_zero_bid){
+        df_data <- 
+            df_data %>% dplyr::filter(bid > 0)
+    }
     
     df_data <- 
         df_data %>% select(underlying_symbol:ask, mid, volume:aka)
