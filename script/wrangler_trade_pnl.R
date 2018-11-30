@@ -5,16 +5,34 @@ library(tidyverse)
 library(tictoc)
 
 
+########################
+## sourcing functions ##
+########################
+source("function/column_specification.R")
+
+
 #####################
 ## reading in data ##
 #####################
 df_chain <- 
-    read_csv("data_output/spy_weekly_chain.csv", col_types = cols())
+    read_csv(
+        "../delta_neutral_data_output/monthly_chain.csv"
+        , col_types = cols()
+    )
 df_chain_hist <- 
-    read_csv("data_output/spy_weekly_chain_hist.csv", col_types = cols())
+    read_csv(
+        "../delta_neutral_data_output/monthly_chain_hist.csv"
+        , col_types = cols()
+    )
 df_opt_hist <-
-    read_csv("data_output/spy_weekly_opt_hist.csv", col_types = cols())
-
+    read_csv(
+        "../delta_neutral_data_output/monthly_opt_hist.csv"
+        , col_types = column_specification("opt_hist")
+    )
+df_underlying <- 
+    read_csv(
+        "data_input/monthly_underlying.csv", col_types = cols()    
+    )
 
 
 #############################
@@ -27,12 +45,12 @@ df_trade <-
         variation = c(0.5, 0.3, 0.1)
         , type = c("put", "call")
         , expiration = df_chain$expiration 
-        , underlying = "SPY"    
+        , underlying = df_underlying$underlying    
     ) %>%  
     # this inner-join has the effect of adding back in the execution dates
     inner_join(
-        df_chain %>% select(expiration, execution)
-        , by = "expiration"
+        df_chain %>% select(underlying, expiration, execution)
+        , by = c("underlying", "expiration")
     )
 
 
@@ -41,7 +59,9 @@ df_trade <-
 ############################################################
 # looping through cartesian product of all trade parameters and choosing 
 # options from df_market_history that fits each parameter
-# will hold all options
+# will hold all options.
+# 2 min - 50 underlyings 1.5 years of monthly
+
 df_all_options <- tibble()
 
 tic()
@@ -108,11 +128,11 @@ for (ix in 1:(nrow(df_trade))){
         mutate(
             variation = df_trade$variation[ix]
             , dly_opt_pnl = 0
-            , ttd_opt_pnl = 0
+            #, ttd_opt_pnl = 0
             , dly_dh_pnl = 0
-            , ttd_dh_pnl = 0
+            #, ttd_dh_pnl = 0
             , dly_opt_mid_pnl = 0
-            , ttd_opt_mid_pnl = 0
+            #, ttd_opt_mid_pnl = 0
         )
     
     # iterating through price data to calculate PNLs
@@ -141,11 +161,11 @@ for (ix in 1:(nrow(df_trade))){
         
         ## cummulative PNL
         # selling at bid
-        df_opt$ttd_opt_pnl[ix_td] <- sum(df_opt$dly_opt_pnl[1:ix_td])
+        #df_opt$ttd_opt_pnl[ix_td] <- sum(df_opt$dly_opt_pnl[1:ix_td])
         # delta-hedge
-        df_opt$ttd_dh_pnl[ix_td] <- sum(df_opt$dly_dh_pnl[1:ix_td])
+        #df_opt$ttd_dh_pnl[ix_td] <- sum(df_opt$dly_dh_pnl[1:ix_td])
         # selling at mid
-        df_opt$ttd_opt_mid_pnl[ix_td] <- sum(df_opt$dly_opt_mid_pnl[1:ix_td])
+        #df_opt$ttd_opt_mid_pnl[ix_td] <- sum(df_opt$dly_opt_mid_pnl[1:ix_td])
     }
     df_pnl <- bind_rows(df_pnl, df_opt)
     
@@ -158,8 +178,8 @@ df_pnl <-
     mutate(
         dly_tot_pnl = dly_opt_pnl + dly_dh_pnl
         , dly_tot_mid_pnl = dly_opt_mid_pnl + dly_dh_pnl
-        , ttd_tot_pnl = ttd_opt_pnl + ttd_dh_pnl
-        , ttd_tot_mid_pnl = ttd_opt_mid_pnl + ttd_dh_pnl
+        #, ttd_tot_pnl = ttd_opt_pnl + ttd_dh_pnl
+        #, ttd_tot_mid_pnl = ttd_opt_mid_pnl + ttd_dh_pnl
     )
 
 
@@ -188,11 +208,11 @@ df_pnl %>%
 
 # sharpe in 2017
 df_pnl %>% 
-    dplyr::filter(data_date < "2018-01-01") %>% 
+    #dplyr::filter(data_date < "2018-01-01") %>% 
     group_by(variation) %>% 
     summarize(
         sharpe_ratio = (mean(dly_opt_pnl) / sd(dly_opt_pnl)) * sqrt(252)
     )
 
 
-    write_csv(df_pnl, "spy_weekly_pnl.csv")
+write_csv(df_pnl, "monthly_trade_pnl_master.csv")
