@@ -1,0 +1,51 @@
+underlying,avg_daily_volume,avg_spread,avg_rel_spread,name,aum,segment
+SPY,5783409.830494068,0.014,0.5,SPDR S&P 500 ETF Trust,$275.42B,Equity: U.S. - Large Cap
+QQQ,1454008.5108061528,0.016,1.1,Invesco QQQ Trust,$70.76B,Equity: U.S. - Large Cap
+IWM,1027170.331359284,0.0235,1.6,iShares Russell 2000 ETF,$46.60B,Equity: U.S. - Small Cap
+EEM,750878.9723627251,0.0438,9.9,iShares MSCI Emerging Markets ETF,$31.82B,Equity: Emerging Markets - Total Market
+XLF,407171.427537667,0.0261,10,Financial Select Sector SPDR Fund,$32.71B,Equity: U.S. Financials
+USO,287852.91248429933,0.0144,12.7,United States Oil Fund LP,$1.76B,Commodities: Energy Crude Oil
+GLD,287185.37969165336,0.016,1.3,SPDR Gold Trust,$30.57B,Commodities: Precious Metals Gold
+EFA,225250.1210649,0.0584,8.7,iShares MSCI EAFE ETF,$72.12B,Equity: Developed Markets Ex-U.S. - Total Market
+XOP,231169.03733985312,0.024,6.7,SPDR S&P Oil & Gas Exploration & Production ETF,$3.06B,Equity: U.S. Oil & Gas Exploration & Production
+EWZ,235642.95731315468,0.039,10.2,iShares MSCI Brazil ETF,$6.88B,Equity: Brazil - Total Market
+GDX,239192.59159933633,0.0201,8.9,VanEck Vectors Gold Miners ETF,$8.82B,Equity: Global Gold Miners
+HYG,209344.89389879126,0.0724,8.4,iShares iBoxx USD High Yield Corporate Bond ETF,$16.35B,Fixed Income: U.S. - Corporate High Yield
+TLT,169039.7186196844,0.0428,3.5,iShares 20+ Year Treasury Bond ETF,$7.67B,Fixed Income: U.S. Government Treasury Long-Term
+FXI,173209.5919282472,0.0268,6.2,iShares China Large-Cap ETF,$4.05B,Equity: China - Large Cap
+SLV,126011.89114394378,0.011,6.9,iShares Silver Trust,$5.04B,Commodities: Precious Metals Silver
+XLE,115523.41741241215,0.0525,7.6,Energy Select Sector SPDR Fund,$18.64B,Equity: U.S. Energy
+DIA,99108.5029917451,0.1023,4.4,SPDR Dow Jones Industrial Average ETF Trust,$21.70B,Equity: U.S. - Large Cap
+XLU,81698.02339006023,0.0395,7.6,Utilities Select Sector SPDR Fund,$7.81B,Equity: U.S. Utilities
+XBI,62592.42101319733,0.074,9.5,SPDR S&P BIOTECH ETF,$5.40B,Equity: U.S. Biotech
+KRE,60172.15299320562,0.0472,8.2,SPDR S&P Regional Banking ETF,$5.43B,Equity: U.S. Banks
+IYR,52958.22238171186,0.0381,4.8,iShares U.S. Real Estate ETF,$4.71B,Equity: U.S. Real Estate
+XRT,44769.754745254744,0.0526,12.1,SPDR S&P Retail ETF,$704.67M,Equity: U.S. Retail
+XLI,47351.28414801573,0.0557,7.8,Industrial Select Sector SPDR Fund,$13.00B,Equity: U.S. Industrials
+XLK,41653.001345438184,0.0788,12.8,Technology Select Sector SPDR Fund,$23.08B,Equity: U.S. Technology
+SMH,59900.447143791884,0.0994,10.9,VanEck Vectors Semiconductor ETF,$1.30B,Equity: Global Semiconductors
+OIH,38390.00865800866,0.0253,9.4,VanEck Vectors Oil Services ETF,$1.35B,Equity: Global Oil & Gas Equipment & Services
+XLV,38887.93303129619,0.081,10.1,Health Care Select Sector SPDR Fund,$17.49B,Equity: U.S. Health Care
+TBT,32093.737382792646,0.0419,11.1,ProShares UltraShort 20+ Year Treasury,$1.76B,Inverse Fixed Income: U.S. Government Treasury Long-Term
+XLP,35611.29623037781,0.048,8.8,Consumer Staples Select Sector SPDR Fund,$9.15B,Equity: U.S. Consumer Non-cyclicals
+GDXJ,30057.10872227188,0.0587,18,VanEck Vectors Junior Gold Miners ETF,$4.90B,Equity: Global Gold Miners
+EWW,29585.51657436131,0.0485,9.6,iShares MSCI Mexico ETF,$1.26B,Equity: Mexico - Total Market
+TZA,22970.89195395248,0.0532,34.7,Direxion Daily Small Cap Bear 3x Shares,$313.05M,Inverse Equity: U.S. - Small Cap
+FXE,21134.61732828575,0.0434,3.9,Invesco CurrencyShares Euro Trust,$250.31M,Currency: Euro
+XME,21983.198667414457,0.0565,17.1,SPDR S&P Metals & Mining ETF,$879.10M,Equity: U.S. Metals & Mining
+EWJ,24395.485463659148,0.0462,8.2,iShares MSCI Japan ETF,$17.39B,Equity: Japan - Total Market
+XLY,17503.91240776767,0.081,8.5,Consumer Discretionary Select Sector SPDR Fund,$14.35B,Equity: U.S. Consumer Cyclicals
+DUST,15099.17292093871,0.2574,83,Direxion Daily Gold Miners Index Bear 3x Shares,$122.21M,Inverse Equity: Global Gold Miners
+FAS,15382.258851674642,0.1516,26,Direxion Daily Financial Bull 3x Shares,$1.96B,Leveraged Equity: U.S. Financials
+DXJ,21136.571295371294,0.0808,15,WisdomTree Japan Hedged Equity Fund,$5.87B,Equity: Japan - Total Market
+XLB,14857.786110672952,0.0936,16.6,Materials Select Sector SPDR Fund,$4.70B,Equity: U.S. Basic Materials
+EWY,10269.04106157001,0.0959,13.8,iShares MSCI South Korea ETF,$3.84B,Equity: South Korea - Total Market
+LQD,9961.936407452196,0.12,10.2,iShares iBoxx USD Investment Grade Corporate Bond ETF,$34.10B,Fixed Income: U.S. - Corporate Investment Grade
+XHB,8580.621825542878,0.0679,17.2,SPDR S&P Homebuilders ETF,$892.25M,Equity: U.S. Homebuilding
+ERX,5722.466463069095,0.1761,55.3,Direxion Daily Energy Bull 3x Shares,$406.97M,Leveraged Equity: U.S. Energy
+VNQ,6784.268639547587,0.128,15.8,Vanguard Real Estate ETF,$32.50B,Equity: U.S. Real Estate
+SSO,5107.385043319254,0.2217,22.2,ProShares Ultra S&P 500,$2.59B,Leveraged Equity: U.S. - Large Cap
+KBE,5321.195834866888,0.1529,33.6,SPDR S&P Bank ETF,$3.81B,Equity: U.S. Banks
+FAZ,3920.145602642971,0.0702,47.2,Direxion Daily Financial Bear 3X Shares,$146.79M,Inverse Equity: U.S. Financials
+FXY,4770.237535271746,0.1181,13.7,Invesco CurrencyShares Japanese Yen Trust,$125.03M,Currency: Japanese Yen
+VWO,3711.6742029899924,0.111,26.1,Vanguard FTSE Emerging Markets ETF,$61.20B,Equity: Emerging Markets - Total Market

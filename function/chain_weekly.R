@@ -35,6 +35,7 @@ chain_weekly <- function(underlying_in){
     df_chain <- df_chain %>% select(-c(friday:fri_biz_day))
     
     # initializing a couple of columns
+    df_chain$d2x = NA_integer_
     df_chain$num_opts = NA_integer_
     df_chain$exec_day_volume = NA_integer_
     
