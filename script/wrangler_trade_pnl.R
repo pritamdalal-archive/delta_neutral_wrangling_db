@@ -19,16 +19,19 @@ df_chain <-
         "../delta_neutral_data_output/monthly_chain.csv"
         , col_types = cols()
     )
+
 df_chain_hist <- 
     read_csv(
         "../delta_neutral_data_output/monthly_chain_hist.csv"
         , col_types = cols()
     )
+
 df_opt_hist <-
     read_csv(
         "../delta_neutral_data_output/monthly_opt_hist.csv"
         , col_types = column_specification("opt_hist")
     )
+
 df_underlying <- 
     read_csv(
         "data_input/monthly_underlying.csv", col_types = cols()    
@@ -215,4 +218,30 @@ df_pnl %>%
     )
 
 
-write_csv(df_pnl, "monthly_trade_pnl_master.csv")
+# writing files to CSV
+# write_csv(df_pnl, "monthly_trade_pnl_master.csv")
+# write_csv(df_trade, "monthly_trade.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
