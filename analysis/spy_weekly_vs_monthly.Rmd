@@ -1,0 +1,244 @@
+---
+title: "Naked Puts vs Delta-Hedged Puts"
+author: "Pritam Dalal"
+output: 
+  html_document:
+    theme: simplex
+    df_print: kable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(tidyquant)
+```
+
+```{r, read_data, include = FALSE}
+getwd()
+# reading in data
+df_underlying_all <-
+    read_csv("../data_input/monthly_underlying.csv")
+df_pnl_all <- 
+    read_csv("../../delta_neutral_data_output/monthly_strangle_pnl.csv")
+df_position_size_all <- 
+    read_csv("../../delta_neutral_data_output/monthly_position_scaling.csv")
+df_expiration <-
+    read_csv("../data_input/monthly_expiration.csv")
+```
+
+```{r, selecting_underlyings, include = FALSE}
+df_underlying <-
+    df_underlying_all %>% 
+    filter(underlying == "SPY")
+
+```
+
+
+```{r, filtering_data, include = FALSE}
+# position size
+df_position_size <- 
+    df_position_size_all %>% 
+    filter(underlying %in% df_underlying$underlying) %>%
+    filter(variation == 0.1)
+
+    
+# pnls
+df_pnl <-         
+    df_pnl_all %>% 
+    filter(underlying_symbol %in% df_underlying$underlying) %>%
+    filter(variation == 0.1) %>% 
+    mutate(
+        naked_dly  = dly_opt_pnl * strangle_mult 
+        , dh_dly = dly_tot_pnl * strangle_mult
+    ) %>% 
+    arrange(underlying_symbol, type, expiration, data_date)
+```
+
+```{r, spy_performance, include = FALSE}
+# getting SPY data to throw in the comparison, using tidyquant package
+df_spy_px <- 
+    tq_get("SPY", get = "stock.prices", from = "2016-12-16", to = "2018-07-20")
+# calculating log returns
+df_spy_px$ret <- 
+    log(df_spy_px$adjusted) - log(lag(df_spy_px$adjusted, 1)) 
+# calculating PNL
+df_spy_px <-
+    df_spy_px %>% 
+        mutate(
+            pnl = 100 * ret
+        ) 
+```
+
+
+&nbsp;
+
+The purpose of this write up is to give you some ideas about how to go about your group analysis project.  The essential idea for a write-up like this is to take some (not all) of the *material* from your sketches, and then put it into a format that is understandable to the reader.  Ideally, you are telling a story with the data.  This is a complex skill, so don't worry if you find this challenging.
+
+The knowlege you assume of your intended audience is an important consideration for how you choose to present your analysis.  For your the project, assume the audience is very familiar with exchange traded equity options, but that they know *nothing* about how you have set up your backtest.
+
+**NOTHING**
+
+&nbsp;
+
+#### Two Trading Strategies
+
+In this analysis, I compare two different trading strategies:
+
+1. Selling unhedged 30-delta puts. 
+
+2. Selling delta-hedged 30-delta puts.
+
+In both strategies, options are sold approximately one month before expiration.  All options are regular expiration options; trades are place on the *prior* regular expiration.  The backtest includes 19 consecutive expirations, starting from January 2017, and ending on July 2018 - the first trades open on 12/16/2016 and the last trades close on 7/20/2018.
+
+Nine different ETFs are included, all of which are SPDR sector funds.  In particular, the symbols are: 
+
+```{r, printing_underlyings, echo=TRUE}
+df_underlying
+```
+
+
+This is a premium selling strategy, so it is useful to understand how much premium is being sold.  Here are the summary statistics over all underlying, expiration combinations:
+```{r, und_exp_prem_sold, echo = FALSE}
+df_position_size %>% 
+    .$strangle_prem_sold %>% 
+    summary()
+```
+
+Notice that we sell an average of \$`r df_position_size$put_prem_sold %>% mean() %>% round(2)` in premium, for each underlying, for each expiration.  Ultimately, this amounts to selling a total of \$`r df_position_size %>% .$put_prem_sold %>% sum() %>% round(2)` in premium over the course of 19 expirations.  Both of the previous statements apply to the hedged *and* unhedged strategies.
+
+
+I estimate that it requires \$100 to fund each of these strategies.
+
+&nbsp;
+
+#### Performance
+In this section I compare the performance of the two strategies.  I also include the performance of a \$500 investment in **SPY** as an additional benchmark. Here is a table of some key performance metrics:
+
+```{r, calc_performance, include = FALSE}
+# daily pnl for each strategy, all underlyings combined
+df_dly_pnl <-
+    df_pnl %>% 
+        group_by(data_date) %>%
+        arrange(data_date) %>% 
+        summarize(
+            naked_dly = sum(naked_dly)
+            , dh_dly = sum(dh_dly) 
+        )
+
+
+# total PNL for both strategies
+tot_unhedged <- df_dly_pnl$naked_dly %>% sum() %>% round(2)
+tot_hedged <- df_dly_pnl$dh_dly %>% sum() %>% round(2)
+tot_spy <- df_spy_px$pnl %>% sum(na.rm = TRUE) %>% round(2)
+
+
+# mean
+avg_unhedged <- df_dly_pnl$naked_dly %>% mean() %>% round(2)
+avg_hedged <- df_dly_pnl$dh_dly %>% mean() %>% round(2)
+avg_spy <- df_spy_px$pnl %>% mean(na.rm = TRUE) %>% round(2)
+
+# standard deviation
+sd_unhedged <- df_dly_pnl$naked_dly %>% sd() %>% round(2)
+sd_hedged <- df_dly_pnl$dh_dly %>% sd() %>% round(2)
+sd_spy <- df_spy_px$pnl %>% sd(na.rm = TRUE) %>% round(2)
+
+
+# sharpe-ratio
+sr_unhedged <- 
+    (mean(df_dly_pnl$naked_dly) / sd(df_dly_pnl$naked_dly)) * sqrt(252) %>% round(2) # naked
+sr_hedged <- 
+    (mean(df_dly_pnl$dh_dly) / sd(df_dly_pnl$dh_dly)) * sqrt(252)  %>% round(2)# hedged
+sr_spy <- 
+(mean(df_spy_px$pnl, na.rm = TRUE) /
+        sd(df_spy_px$pnl, na.rm = TRUE)) * sqrt(252)  %>% round(2) # SPY
+
+# returns
+ret_unhedged <- (101.27/100)^(365/581) - 1 # naked
+ret_hedged <- (103.22/100)^(365/581) - 1 # delta-hedged
+ret_spy <- (df_spy_px$adjusted[nrow(df_spy_px)]
+    /df_spy_px$adjusted[1]) ^ (365/581) - 1 # SPY 
+
+# DVAR
+dvar_hedged <- quantile(df_dly_pnl$naked_dly, 0.05) %>% round(2)
+dvar_unhedged <- quantile(df_dly_pnl$dh_dly, 0.05) %>% round(2)
+dvar_spy <- quantile(df_spy_px$pnl, 0.05, na.rm = TRUE) %>% round(2)
+
+df_performance <-
+    tibble(
+        strategy = c("unhedged", "hedged", "spy")
+        , total = c(tot_unhedged, tot_hedged, tot_spy)
+        , mean = c(avg_unhedged, avg_hedged, avg_spy)
+        , sd = c(sd_unhedged, sd_hedged, sd_spy)
+        , sharpe = c(sr_unhedged, sr_hedged, sr_spy)
+        , ret = c(ret_unhedged, ret_hedged, ret_spy)
+        , dvar = c(dvar_hedged, dvar_unhedged, dvar_spy)
+    )
+```
+
+
+
+```{r, performance_table, echo = FALSE}
+df_performance
+```
+
+As you can see, over the backtest data, selling naked options significantly outperformed selling delta-hedged options.  However, both strategies were outperformed by investing in the SP500.
+
+&nbsp;
+
+#### Visualizing Cummulative Performance
+
+As we can see from the table above, delta-hedging reduces the risk significantly, but the risk is not zero. Graphing the cummulative PNLs of the hedged and unhedged strategies is another way to illustrate this risk reduction:
+```{r, ttd_pnl_graph, echo = FALSE}
+df_pnl %>% 
+    group_by(data_date) %>%
+    arrange(data_date) %>% 
+    summarize(
+        naked_dly = sum(naked_dly)
+        , dh_dly = sum(dh_dly) 
+    ) %>% 
+    mutate(
+        naked_ttd = cumsum(naked_dly)
+        , dh_ttd = cumsum(dh_dly)
+    ) %>% 
+    ggplot() +
+        geom_line(aes(x = data_date, y = naked_ttd), color = "green") +
+        geom_line(aes(x = data_date, y = dh_ttd), color = "blue")
+
+```
+
+The graph of the unhedged strategy is instructive of the nature of premium selling.  Everthing is great...until it isn't.
+
+&nbsp;
+
+#### How to Improve This Analysis
+
+1. Add labeling to all graphs.
+
+1. Include SPY in ttd_pnl graph.
+
+1. Add legend to PNL graph.
+
+1. Additional performance metrics: largest draw down.
+
+1. Graph PNLs by month - this is important in the alternative investment space.
+
+1. Make max width of the writing more narrow.
+
+1. Title font is too big.
+
+1. Change table column names to be more descriptive.
+
+1. Change returns to percentage,
+
+
+
+
+
+
+
