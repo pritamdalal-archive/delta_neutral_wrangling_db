@@ -4,13 +4,13 @@ chain_weekly <- function(underlying_in){
     df_chain <-
         crossing(
             underlying = underlying_in
-            ,friday = seq(ymd(20161216), ymd(20180727), "weeks")
+            ,friday = seq(ymd(20161216), ymd(20180720), "weeks")
         ) %>% 
         mutate(
             # check if Friday is a business day
             fri_biz_day = is.bizday(friday) 
             # initializing expiration column
-            , expiration = seq(ymd(20161216), ymd(20180727), "weeks") 
+            , expiration = seq(ymd(20161216), ymd(20180720), "weeks") 
         )
     
     

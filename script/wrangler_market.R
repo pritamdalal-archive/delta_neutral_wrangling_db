@@ -34,9 +34,9 @@ df_underlying <-
 
 # creating df_chains which contains
 #  all underlying, expiration, execution dates
-df_chain <- chain_monthly(df_underlying$underlying)
+#df_chain <- chain_monthly(df_underlying$underlying)
 #df_chain <- chain_monthly(c("SPY", "QQQ"))
-#df_chain <- chain_weekly("SPY")
+df_chain <- chain_weekly("SPY")
 
 tic()
 df_chain_hist = tibble()
@@ -210,6 +210,6 @@ toc()
 #-------------------#
 # writing csv files #
 #-------------------#
- write_csv(df_chain, "data_output/monthly_chain.csv")
- write_csv(df_chain_hist, "data_output/monthly_chain_hist.csv")
- write_csv(df_opt_hist, "data_output/monthly_opt_hist.csv")
+ # write_csv(df_chain, "spy_weekly_chain.csv")
+ # write_csv(df_chain_hist, "spy_weekly_chain_hist.csv")
+ # write_csv(df_opt_hist, "spy_weekly_opt_hist.csv")

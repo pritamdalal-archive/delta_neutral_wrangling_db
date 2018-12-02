@@ -16,26 +16,28 @@ source("function/column_specification.R")
 #####################
 df_chain <- 
     read_csv(
-        "../delta_neutral_data_output/monthly_chain.csv"
+        "../delta_neutral_data_output/spy_weekly_chain.csv"
         , col_types = cols()
     )
 
 df_chain_hist <- 
     read_csv(
-        "../delta_neutral_data_output/monthly_chain_hist.csv"
+        "../delta_neutral_data_output/spy_weekly_chain_hist.csv"
         , col_types = cols()
     )
 
 df_opt_hist <-
     read_csv(
-        "../delta_neutral_data_output/monthly_opt_hist.csv"
+        "../delta_neutral_data_output/spy_weekly_opt_hist.csv"
         , col_types = column_specification("opt_hist")
     )
 
-df_underlying <- 
-    read_csv(
-        "data_input/monthly_underlying.csv", col_types = cols()    
-    )
+# df_underlying <- 
+#     read_csv(
+#         "data_input/monthly_underlying.csv", col_types = cols()    
+#     )
+
+df_underlying  <- tibble(underlying = c("SPY"))
 
 
 #############################
@@ -64,7 +66,7 @@ df_trade <-
 # options from df_market_history that fits each parameter
 # will hold all options.
 # 2 min - 50 underlyings 1.5 years of monthly
-
+# 8 sec - SPY, 1.5 years of weekly 
 df_all_options <- tibble()
 
 tic()
@@ -107,6 +109,8 @@ df_trade %>%
 #################################################
 ## getting option history and calculating PNLs ##
 #################################################
+# 6 min - 50 underlyings 1.5 years of monthly
+# 11 sec - SPY, 1.5 years of weekly 
 cp <- function(type){
     if (type == "put") { return(-1) }
     if (type == "call") { return(1) }
@@ -116,7 +120,7 @@ df_pnl <- tibble()
 
 tic()
 # iterating through all trades and grabbing all histories 
-# (this takes 11 minutes)
+# (this takes minutes)
 for (ix in 1:(nrow(df_trade))){
     
     # querying option history for price data
@@ -219,8 +223,8 @@ df_pnl %>%
 
 
 # writing files to CSV
-# write_csv(df_pnl, "monthly_trade_pnl_master.csv")
-# write_csv(df_trade, "monthly_trade.csv")
+ write_csv(df_pnl, "spy_weekly_pnl_master.csv")
+ write_csv(df_trade, "spy_weekly_trade_master.csv")
 
 
 

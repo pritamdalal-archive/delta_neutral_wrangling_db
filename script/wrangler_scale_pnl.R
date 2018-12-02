@@ -13,11 +13,11 @@ library(tidyverse)
 ## reading in data ##
 #####################
 df_chain <- 
-    read_csv("../delta_neutral_data_output/monthly_chain.csv")
+    read_csv("../delta_neutral_data_output/spy_weekly_chain.csv")
 df_trade_master <- 
-    read_csv("../delta_neutral_data_output/monthly_trade_master.csv")
+    read_csv("../delta_neutral_data_output/spy_weekly_trade_master.csv")
 df_pnl_master <- 
-    read_csv("../delta_neutral_data_output/monthly_pnl_master.csv")
+    read_csv("../delta_neutral_data_output/spy_weekly_pnl_master.csv")
 
 
 
@@ -72,11 +72,20 @@ df_position_scaling <-
         )
 
 
+# testing
+df_position_scaling %>% 
+    group_by(variation) %>% 
+    summarize(
+        tot_put = sum(put_prem_sold)
+        , tot_all = sum(call_prem_sold)
+        , tot_strangle = sum(strangle_prem_sold)
+    )
+
 
 #############################################################
 ## adding unity_mult position size scalar factor to df_pnl ##
 #############################################################
-# this is what the students will use for their project
+# strangles
 df_strangle_pnl_scaled <- 
     df_pnl_master %>% 
         left_join(
@@ -88,7 +97,7 @@ df_strangle_pnl_scaled <-
             underlying_symbol:dly_tot_mid_pnl, strangle_mult
         )
 
-# this is what I will use for the practice analysis
+# puts
 df_put_pnl_scaled <-
     df_pnl_master %>% 
         dplyr::filter(type == "put") %>% 
@@ -101,7 +110,7 @@ df_put_pnl_scaled <-
             underlying_symbol:dly_tot_mid_pnl, put_mult
         )
 
-# I'm not sure this will get used
+# calls
 df_call_pnl_scaled <-
     df_pnl_master %>% 
         dplyr::filter(type == "call") %>% 
@@ -119,10 +128,10 @@ df_call_pnl_scaled <-
 #######################
 ## writing CSV files ##
 #######################
-write_csv(df_position_scaling, "position_scaling.csv")
-write_csv(df_strangle_pnl_scaled, "strangle_pnl.csv")
-write_csv(df_put_pnl_scaled, "put_pnl.csv")
-write_csv(df_call_pnl_scaled, "call_pnl.csv")
+write_csv(df_position_scaling, "spy_weekly_position_scaling.csv")
+write_csv(df_strangle_pnl_scaled, "spy_weekly_strangle_pnl.csv")
+write_csv(df_put_pnl_scaled, "spy_weekly_put_pnl.csv")
+write_csv(df_call_pnl_scaled, "spy_weekly_call_pnl.csv")
 
 
 #############
