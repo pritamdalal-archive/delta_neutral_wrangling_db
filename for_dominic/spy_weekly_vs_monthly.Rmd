@@ -1,0 +1,253 @@
+---
+title: "Demonstration Analysis"
+subtitle: "SPY Weeklys vs Monthly"
+author: "Pritam Dalal"
+output: 
+  html_document:
+    theme: united
+    df_print: kable
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load_packages, include = FALSE}
+# loading packages
+library(tidyverse)
+library(tidyquant)
+```
+
+```{r, read_data, include = FALSE}
+###################
+# reading in data #
+###################
+df_underlying_all <-
+    read_csv("../data_input/monthly_underlying.csv", col_type = cols())
+df_monthly_pnl_all <- 
+    read_csv("../../delta_neutral_data_output/monthly_strangle_pnl.csv",col_type = cols())
+df_spy_weekly_pnl_all <- 
+    read_csv("../../delta_neutral_data_output/spy_weekly_strangle_pnl.csv", col_type = cols())
+df_monthly_position_size_all <- 
+    read_csv("../../delta_neutral_data_output/monthly_position_scaling.csv", col_type = cols())
+df_spy_weekly_position_size_all <- 
+    read_csv("../../delta_neutral_data_output/spy_weekly_position_scaling.csv", col_type = cols())
+
+dbl_aum <- 100000
+dbl_base_size <- 75
+dbl_aum_mult <- dbl_aum / dbl_base_size
+```
+
+
+```{r, combine_dataframes, include = FALSE}
+####################################
+## combining dataframes as needed ##
+####################################
+# the purpose of this code is to combine the pnls from the weekly strategy and the monthly strategy into one dataframe so that we can efficiently calculate statistics on them. 
+
+# adding frequency columns to pnl dataframes
+df_monthly_pnl_all <- 
+    df_monthly_pnl_all %>% mutate(frequency = "monthly")
+df_spy_weekly_pnl_all <- 
+    df_spy_weekly_pnl_all %>% mutate(frequency = "weekly")
+
+# combing pnl dataframes
+df_pnl_all <- bind_rows(df_monthly_pnl_all, df_spy_weekly_pnl_all)
+
+# adding frequency columns to position size dataframes
+df_monthly_position_size_all <-
+    df_monthly_position_size_all %>% mutate(frequency = "monthly")
+df_spy_weekly_position_size_all <- 
+    df_spy_weekly_position_size_all %>% mutate(frequency = "weekly")
+
+# combining position size dataframes
+df_position_size_all <- 
+    bind_rows(df_monthly_position_size_all, df_spy_weekly_position_size_all)
+```
+
+
+
+
+```{r, selecting_underlyings, include = FALSE}
+df_underlying <-
+    df_underlying_all %>% 
+    filter(underlying == "SPY")
+```
+
+
+```{r, filtering_data, include = FALSE}
+############################################
+## filtering and adding columns as needed ##
+############################################
+# position size - filtering by underlying and variation
+df_position_size <- 
+    df_position_size_all %>% 
+    filter(underlying %in% df_underlying$underlying) %>%
+    filter(variation == 0.1)
+
+    
+# pnls - scaling the pnl and rearranging columns
+df_pnl <-         
+    df_pnl_all %>% 
+    filter(underlying_symbol %in% df_underlying$underlying) %>%
+    filter(variation == 0.1) %>% 
+    mutate(
+        naked_dly  = dly_opt_pnl * strangle_mult * dbl_aum_mult
+        , dh_dly = dly_tot_pnl * strangle_mult * dbl_aum_mult
+    ) %>% 
+    select(frequency, underlying_symbol:strangle_mult, naked_dly:dh_dly) %>% 
+    arrange(frequency, underlying_symbol, type, expiration, data_date)
+```
+
+```{r, spy_performance, include = FALSE}
+# getting SPY data to throw in the comparison, using tidyquant package
+df_spy_px <- 
+    tq_get("SPY", get = "stock.prices", from = "2016-12-16", to = "2018-07-23")
+# calculating log returns
+df_spy_px$ret <- 
+    log(df_spy_px$adjusted) - log(lag(df_spy_px$adjusted, 1)) 
+# calculating PNL
+df_spy_px <-
+    df_spy_px %>% 
+        mutate(
+            pnl = dbl_aum * ret
+        ) 
+```
+
+The purpose of this analysis is to demonstrate the capabilities of the Option Data Science (ODS) backtesting framework.  Towards this end, we will examine four different SPY option premium selling strategies.  Specifically, we consider the repeated selling of weekly and monthly options, both naked and delta-hedged.  The report ends with a proposal for a more involved backtest - the proposal includes deliverables, timeline, and pricing.
+
+
+#### Backtesting Parameters
+
+**Dates:** 12/16/2016 - 7/20/2018 (400 total trading days)
+
+**Underlying:** SPY
+
+**AUM:** $100,000
+
+**Weekly:** on each Friday, sell 10-delta strangles that expire the following Friday.
+
+**Monthly:** on each regular option expiration (3rd Friday of the month), sell 10-delta strangles that expire on the next regular expiration.
+
+
+For both tenors, the first trades open on 12/16/2016 and the last trades close on 7/20/2018.  The monthly strategy is executed over 19 consecutive regular expirations, while the weekly strategy is executed over 83 consecutive weekly expirations.  We examine naked and delta-hedged variations for both monthly and weekly options.
+
+#### Premium 
+Since we are selling options, let's consider the total the amount of premium sold and total number of options sold for each tenor.  Here is a table of summary statistics: 
+```{r, und_exp_prem_sold, echo = FALSE, , fig.cap="Premium Related Statistics"}
+df_position_size %>% 
+    group_by(frequency) %>% 
+    summarize(
+        tot_prem = (sum(strangle_prem_sold) * dbl_aum_mult) %>% round(0)
+        , avg_prem = (mean(strangle_prem_sold) * dbl_aum_mult) %>% round(0)
+        , tot_opt = (sum(strangle_mult) * dbl_aum_mult / 100) %>% round(0)
+        , avg_opt = (mean(strangle_mult) * dbl_aum_mult / 100) %>% round(0)
+    ) %>% 
+    .[c(2, 1), ]
+```
+
+Notice that both strategies sell \$26K in premium over the backtest period.  The weekly strategies sell \$300 in premium per execution, while the monthly strategies sell \$1,375 in premium per expiration.  Over the entire backtest period, the weekly strategies sell 858 options, which is 2.5 times as many as the monthly strategies.  This makes sense because the options being sold in the weekly strategy are of a much shorter tenor, and are therefore worth quite a bit less.
+
+
+#### Performance
+Let's compare the performance of the four strategies:
+```{r, gathering_pnl, include = FALSE}
+########################################################
+## gathered the PNLs together and performing analysis ##
+########################################################
+# daily pnl for each strategy, all underlyings combined
+df_dly_pnl <-
+    df_pnl %>%
+        group_by(frequency, data_date) %>%
+        arrange(frequency, data_date) %>%
+        summarize(
+            naked_dly = sum(naked_dly)
+            , dh_dly = sum(dh_dly)
+        )
+
+# gathering the dh_pnl column
+df_pnl_gathered <-  
+    df_dly_pnl %>% 
+        rename(naked = naked_dly, dh = dh_dly) %>% 
+        gather(hedge, daily_pnl, naked:dh) %>% 
+        mutate(strategy = paste0(frequency, "_", hedge)) %>% 
+        ungroup() %>% 
+        select(strategy, data_date, daily_pnl) %>% 
+        bind_rows(
+            df_spy_px %>% 
+                mutate(
+                    strategy = "spy"
+                    , daily_pnl = replace_na(pnl, 0)
+                ) %>%
+                select(strategy, data_date = date, daily_pnl)
+        ) 
+
+
+# calculating trade-to-date PNLs
+df_pnl_gathered <- 
+    df_pnl_gathered %>% 
+        group_by(strategy) %>% 
+        mutate(
+            ttd_pnl = with_order(data_date, cumsum, daily_pnl)
+        ) %>% 
+        mutate(
+            draw_down = cummax(ttd_pnl) - ttd_pnl
+        )
+
+
+# calculating various performance metrics
+df_performance <- 
+    df_pnl_gathered %>% 
+        filter(strategy != "spy") %>% 
+        group_by(strategy) %>% 
+        summarize(
+            tot_pnl = sum(daily_pnl) %>% round(2)
+            , sharpe_ratio = 
+                ((mean(daily_pnl) / sd(daily_pnl)) * sqrt(252) )%>% round(2)
+            , ret = 
+                ((((sum(daily_pnl) + dbl_aum) / dbl_aum) ^ (252/400)) - 1) %>% 
+                round(3)
+            , max_drawdown = (max(draw_down) / dbl_aum) %>% round(2)
+        ) %>% 
+        .[c(3, 4, 1, 2), ]
+
+```
+
+```{r, performance_table, echo = FALSE}
+df_performance
+```
+
+None of these strategies performed particularly well during the backtest period, especially considering that SPY had 15\% a return and a 1.45 Sharpe-Ratio during the same time frame.  All strategies suffered significant  during market turmoil in early 2018; the monthly-naked strategy lost a staggering 30\% of AUM before rebounding.
+
+Note: this PNL does not account for commissions, which I estimate to be about \$1,000 for the weeklys, and \$500 for the monthlys.
+
+
+#### Visualizing Cumulative Performance
+
+The the trade-to-date PNL graphs of these strategies are representative of the nature of naive option selling.  Everything is great...until it isn't.
+
+```{r, ttd_pnl_graph, echo = FALSE}
+df_pnl_gathered %>% 
+    filter(strategy != "spy") %>% 
+    ggplot() +
+    geom_line(aes(x = data_date, y = ttd_pnl, color = strategy)) +
+    labs(
+        title = "Selling SPY Strangles - Cumulative PNL"
+        , subtitle = "$100K aum; 10-delta; Dec 16 2016 - July 2018"
+        , x = "trade date"
+        , y = "ttd pnl"
+    )
+
+```
+
+
+
+
+
+
+
+
+
+
