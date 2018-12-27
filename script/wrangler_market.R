@@ -33,7 +33,7 @@ df_underlying <-
     read_csv("data_input/monthly_underlying.csv", col_types = cols())
 
 # creating df_chains which contains
-#  all underlying, expiration, execution dates
+# all underlying, expiration, execution dates
 #df_chain <- chain_monthly(df_underlying$underlying)
 #df_chain <- chain_monthly(c("SPY", "QQQ"))
 df_chain <- chain_weekly("SPY")
